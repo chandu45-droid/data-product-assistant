@@ -92,16 +92,16 @@ Transforms business discussions → structured, traceable data product requireme
 
 **Note:** Backend uses `/tmp/data.db` (ephemeral SQLite on Vercel serverless). Data resets on cold starts. Fine for portfolio demo — AI generates mock data on every request.
 
-## Milestone 6: Polish & Portfolio 🔄
-**Status:** In Progress (3/5 done)
+## Milestone 6: Polish & Portfolio ✅
+**Status:** Complete (2026-06-26)
 
 | Task | Status | Notes |
 |---|---|---|
 | Error handling UX (toast notifications) | ✅ Done | ToastProvider + useToast hook. All 7 pages converted — inline banners removed, success/error/warning toasts with auto-dismiss. |
 | Loading states audit | ✅ Done | Dashboard now uses skeleton cards (4 summary tiles + 2 sections) instead of single spinner. Other pages already adequate. |
 | Mobile responsive check | ✅ Done | Sidebar: hamburger toggle + overlay on mobile. Impact/Discovery: history sidebar stacks below on mobile. Traceability: 2-col on mobile, 4-col on desktop. Delivery: reduced indentation. Requirements: flex-wrap filter bar. Header: padding for hamburger button. |
-| Demo walkthrough recording | ⬜ Pending | |
-| Portfolio write-up | ⬜ Pending | |
+| Demo walkthrough script | ✅ Done | DEMO-SCRIPT.md — 3-4 min structured walkthrough covering all 7 features + mobile. Ready for screen recording with OBS/Loom. |
+| Portfolio write-up | ✅ Done | PORTFOLIO.md — project summary, architecture, BA skills demonstrated, what-I'd-add-next. Ready for Thoughtworks submission. |
 
 ---
 
@@ -111,6 +111,9 @@ Transforms business discussions → structured, traceable data product requireme
 3. `Add progress tracker after E2E testing verification` — progress.md
 4. `Move render.yaml to repo root with rootDir for Render Blueprint` — deployment prep
 5. `Deploy full stack to Vercel (frontend + backend)` — api/index.py, vercel.json, live URLs
+6. `Update progress.md with deployment results` — Milestone 5 complete
+7. `Add toast notifications, skeleton loading, and mobile responsive layout` — Milestone 6 tasks 1-3
+8. `Complete Milestone 6: demo script + portfolio write-up` — All milestones done
 
 ## Architecture Notes
 - **No API key?** AI service returns mock/structured data so app works without Claude API
