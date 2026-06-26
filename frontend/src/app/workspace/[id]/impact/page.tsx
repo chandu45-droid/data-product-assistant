@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner, SkeletonList } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, timeAgo } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 export default function ImpactPage({
   params,
@@ -37,12 +38,12 @@ export default function ImpactPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { error: showError, success: showSuccess } = useToast();
   const [changeText, setChangeText] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analyses, setAnalyses] = useState<ImpactAnalysis[]>([]);
   const [selected, setSelected] = useState<ImpactAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     listImpactAnalyses(id)
@@ -50,7 +51,9 @@ export default function ImpactPage({
         setAnalyses(data);
         if (data.length > 0) setSelected(data[0]);
       })
-      .catch(() => {})
+      .catch((err) => {
+        showError("Failed to load analyses", err instanceof Error ? err.message : undefined);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -58,17 +61,15 @@ export default function ImpactPage({
     if (!changeText.trim()) return;
     try {
       setAnalyzing(true);
-      setError(null);
       const result = await submitImpactAnalysis(id, {
         change_description: changeText,
       });
       setAnalyses((prev) => [result, ...prev]);
       setSelected(result);
       setChangeText("");
+      showSuccess("Impact analysis complete", "Review the results below.");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impact analysis failed"
-      );
+      showError("Analysis failed", err instanceof Error ? err.message : undefined);
     } finally {
       setAnalyzing(false);
     }
@@ -113,18 +114,6 @@ export default function ImpactPage({
       />
 
       <div className="mx-auto max-w-7xl px-6 py-8 space-y-8">
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 underline cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
         {/* Input */}
         <Card>
           <CardHeader>
@@ -162,9 +151,9 @@ export default function ImpactPage({
         )}
 
         {/* Results + History */}
-        <div className="flex gap-6">
+        <div className="flex flex-col-reverse lg:flex-row gap-6">
           {/* History sidebar */}
-          <div className="w-64 shrink-0 space-y-2">
+          <div className="w-full lg:w-64 lg:shrink-0 space-y-2">
             <h3 className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-3">
               <Clock className="inline h-3.5 w-3.5 mr-1" />
               Analysis History

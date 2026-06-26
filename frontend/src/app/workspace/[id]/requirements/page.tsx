@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Spinner, SkeletonList } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 
 export default function RequirementsPage({
   params,
@@ -37,10 +38,10 @@ export default function RequirementsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { error: showError, success: showSuccess } = useToast();
   const [requirements, setRequirements] = useState<DataRequirement[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -49,19 +50,22 @@ export default function RequirementsPage({
   useEffect(() => {
     listDataRequirements(id)
       .then(setRequirements)
-      .catch(() => {})
+      .catch((err) => {
+        showError("Failed to load requirements", err instanceof Error ? err.message : undefined);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleGenerate = async () => {
     try {
       setGenerating(true);
-      setError(null);
       const result = await generateDataRequirements(id);
       setRequirements(result);
+      showSuccess("Requirements generated", `${result.length} data requirements identified.`);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Generation failed"
+      showError(
+        "Generation failed",
+        err instanceof Error ? err.message : undefined
       );
     } finally {
       setGenerating(false);
@@ -78,8 +82,9 @@ export default function RequirementsPage({
         prev.map((r) => (r.id === updated.id ? updated : r))
       );
       setEditingId(null);
+      showSuccess("Requirement updated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      showError("Update failed", err instanceof Error ? err.message : undefined);
     }
   };
 
@@ -123,18 +128,6 @@ export default function RequirementsPage({
       />
 
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 underline cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
         {generating && (
           <Spinner message="Generating data requirements from discoveries..." />
         )}
@@ -143,7 +136,7 @@ export default function RequirementsPage({
           <>
             {/* Filters */}
             {requirements.length > 0 && (
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
                 <div className="flex items-center gap-2 text-xs text-text-secondary">
                   <Filter className="h-3.5 w-3.5" />
                   <span>Filter:</span>

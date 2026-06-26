@@ -24,7 +24,8 @@ import type { Workspace, TraceabilityData } from "@/types";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PageLoader } from "@/components/ui/loading";
+import { SkeletonCard } from "@/components/ui/loading";
+import { useToast } from "@/components/ui/toast";
 
 interface SummaryCard {
   label: string;
@@ -41,6 +42,7 @@ export default function WorkspaceDashboard({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { error: showError, warning: showWarning } = useToast();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [counts, setCounts] = useState({
     discoveries: 0,
@@ -62,7 +64,11 @@ export default function WorkspaceDashboard({
           listImpactAnalyses(id),
         ]);
 
-        if (ws.status === "fulfilled") setWorkspace(ws.value);
+        if (ws.status === "fulfilled") {
+          setWorkspace(ws.value);
+        } else {
+          showError("Failed to load workspace");
+        }
         setCounts({
           discoveries:
             disc.status === "fulfilled" ? disc.value.length : 0,
@@ -79,7 +85,7 @@ export default function WorkspaceDashboard({
           const trace = await getTraceability(id);
           setTraceability(trace);
         } catch {
-          // ok
+          showWarning("Traceability data unavailable", "Complete the full workflow to see trace chains.");
         }
       } finally {
         setLoading(false);
@@ -88,7 +94,32 @@ export default function WorkspaceDashboard({
     load();
   }, [id]);
 
-  if (loading) return <PageLoader message="Loading dashboard..." />;
+  if (loading) {
+    return (
+      <div className="animate-fade-in">
+        <Header
+          title="Loading..."
+          breadcrumbs={[
+            { label: "Workspaces", href: "/" },
+            { label: "..." },
+          ]}
+        />
+        <div className="mx-auto max-w-7xl px-6 py-8 space-y-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <SkeletonCard />
+            </div>
+            <SkeletonCard />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const summaryCards: SummaryCard[] = [
     {

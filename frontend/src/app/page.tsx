@@ -20,13 +20,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 import { SkeletonCard } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 import { formatDate } from "@/lib/utils";
 
 export default function HomePage() {
   const router = useRouter();
+  const { error: showError, success: showSuccess } = useToast();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -38,19 +40,19 @@ export default function HomePage() {
   const fetchWorkspaces = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
+      setLoadError(false);
       const data = await listWorkspaces();
       setWorkspaces(data);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load workspaces. Is the backend running?"
+      setLoadError(true);
+      showError(
+        "Failed to load workspaces",
+        err instanceof Error ? err.message : "Is the backend running?"
       );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     fetchWorkspaces();
@@ -63,10 +65,12 @@ export default function HomePage() {
       const ws = await createWorkspace(form);
       setShowCreate(false);
       setForm({ name: "", description: "" });
+      showSuccess("Workspace created", `"${ws.name}" is ready.`);
       router.push(`/workspace/${ws.id}`);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create workspace"
+      showError(
+        "Failed to create workspace",
+        err instanceof Error ? err.message : undefined
       );
     } finally {
       setCreating(false);
@@ -78,9 +82,11 @@ export default function HomePage() {
       setDeleting(id);
       await deleteWorkspace(id);
       setWorkspaces((prev) => prev.filter((w) => w.id !== id));
+      showSuccess("Workspace deleted");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete workspace"
+      showError(
+        "Failed to delete workspace",
+        err instanceof Error ? err.message : undefined
       );
     } finally {
       setDeleting(null);
@@ -122,19 +128,6 @@ export default function HomePage() {
           </Button>
         </div>
 
-        {/* Error banner */}
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 underline cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
         {/* Loading */}
         {loading && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +138,7 @@ export default function HomePage() {
         )}
 
         {/* Empty */}
-        {!loading && workspaces.length === 0 && !error && (
+        {!loading && workspaces.length === 0 && !loadError && (
           <EmptyState
             icon={<Boxes className="h-7 w-7" />}
             title="No workspaces yet"

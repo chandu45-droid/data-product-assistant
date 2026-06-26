@@ -21,6 +21,7 @@
   --animate-slide-up: slide-up 0.3s ease-out;
   --animate-shimmer: shimmer 1.5s infinite;
   --animate-spin-slow: spin 1.2s linear infinite;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
 }
 
 @keyframes fade-in {
@@ -31,6 +32,11 @@
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes shimmer {

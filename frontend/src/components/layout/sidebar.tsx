@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -32,23 +34,36 @@ const navItems = [
 
 export function Sidebar({ workspaceId, workspaceName }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const basePath = `/workspace/${workspaceId}`;
 
-  return (
-    <aside
-      className={cn(
-        "flex h-screen flex-col border-r border-border bg-surface transition-all duration-200",
-        collapsed ? "w-[68px]" : "w-[260px]"
-      )}
-    >
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-border px-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white text-sm font-bold">
           DP
         </div>
         {!collapsed && (
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-text-primary truncate">
               DPDA
             </p>
@@ -57,6 +72,13 @@ export function Sidebar({ workspaceId, workspaceName }: SidebarProps) {
             </p>
           </div>
         )}
+        {/* Mobile close button */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="md:hidden ml-auto p-1 rounded-lg text-text-secondary hover:bg-slate-100 cursor-pointer"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Workspace indicator */}
@@ -106,7 +128,7 @@ export function Sidebar({ workspaceId, workspaceName }: SidebarProps) {
       <div className="border-t border-border px-3 py-3 space-y-1">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors cursor-pointer"
+          className="hidden md:flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors cursor-pointer"
         >
           {collapsed ? (
             <ChevronRight className="h-[18px] w-[18px] shrink-0" />
@@ -126,6 +148,47 @@ export function Sidebar({ workspaceId, workspaceName }: SidebarProps) {
           {!collapsed && <span>All Workspaces</span>}
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-surface border border-border shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+        aria-label="Open navigation"
+      >
+        <Menu className="h-5 w-5 text-text-primary" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <aside
+        className={cn(
+          "md:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-[280px] bg-surface border-r border-border transition-transform duration-300",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "hidden md:flex h-screen flex-col border-r border-border bg-surface transition-all duration-200",
+          collapsed ? "w-[68px]" : "w-[260px]"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

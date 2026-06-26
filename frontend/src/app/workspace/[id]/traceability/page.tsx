@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageLoader } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 // ── Column config ─────────────────────────────────────────────────
 
@@ -167,10 +168,10 @@ export default function TraceabilityPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { error: showError } = useToast();
   const [data, setData] = useState<TraceabilityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(
     new Set()
   );
@@ -182,14 +183,12 @@ export default function TraceabilityPage({
     async (isRefresh = false) => {
       try {
         if (isRefresh) setRefreshing(true);
-        setError(null);
         const result = await getTraceability(id);
         setData(result);
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load traceability data"
+        showError(
+          "Failed to load traceability",
+          err instanceof Error ? err.message : undefined
         );
       } finally {
         setLoading(false);
@@ -260,12 +259,6 @@ export default function TraceabilityPage({
       />
 
       <div className="mx-auto max-w-[1600px] px-6 py-8">
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
         {!hasData ? (
           <EmptyState
             icon={<LinkIcon className="h-7 w-7" />}
@@ -330,7 +323,7 @@ export default function TraceabilityPage({
             <div
               ref={containerRef}
               className={cn(
-                "grid grid-cols-4 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200",
+                "grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200",
                 expanded ? "min-h-[80vh]" : ""
               )}
             >

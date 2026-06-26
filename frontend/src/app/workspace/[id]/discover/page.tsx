@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Spinner, SkeletonList } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 import { cn, timeAgo } from "@/lib/utils";
 
 export default function DiscoverPage({
@@ -38,6 +39,7 @@ export default function DiscoverPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { error: showError, success: showSuccess } = useToast();
   const [inputText, setInputText] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
@@ -53,7 +55,9 @@ export default function DiscoverPage({
         setDiscoveries(data);
         if (data.length > 0) setSelected(data[0]);
       })
-      .catch(() => {})
+      .catch((err) => {
+        showError("Failed to load discoveries", err instanceof Error ? err.message : undefined);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -70,9 +74,11 @@ export default function DiscoverPage({
       setSelected(result);
       setInputText("");
       setTab("history");
+      showSuccess("Discovery complete", "AI extracted business objectives, stakeholders, KPIs, and risks.");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Analysis failed"
+      showError(
+        "Analysis failed",
+        err instanceof Error ? err.message : undefined
       );
     } finally {
       setAnalyzing(false);
@@ -93,9 +99,11 @@ export default function DiscoverPage({
         prev.map((d) => (d.id === updated.id ? updated : d))
       );
       setEditSection(null);
+      showSuccess("Changes saved");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to save"
+      showError(
+        "Failed to save",
+        err instanceof Error ? err.message : undefined
       );
     }
   };
@@ -143,18 +151,6 @@ export default function DiscoverPage({
           </button>
         </div>
 
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 underline cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
         {tab === "input" && (
           <div className="max-w-3xl">
             <Card>
@@ -197,9 +193,9 @@ export default function DiscoverPage({
         )}
 
         {tab === "history" && (
-          <div className="flex gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* History list */}
-            <div className="w-72 shrink-0 space-y-2">
+            <div className="w-full lg:w-72 lg:shrink-0 space-y-2">
               {loading ? (
                 <SkeletonList count={3} />
               ) : discoveries.length === 0 ? (

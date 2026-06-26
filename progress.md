@@ -92,14 +92,14 @@ Transforms business discussions → structured, traceable data product requireme
 
 **Note:** Backend uses `/tmp/data.db` (ephemeral SQLite on Vercel serverless). Data resets on cold starts. Fine for portfolio demo — AI generates mock data on every request.
 
-## Milestone 6: Polish & Portfolio ⬜
-**Status:** Not Started
+## Milestone 6: Polish & Portfolio 🔄
+**Status:** In Progress (3/5 done)
 
 | Task | Status | Notes |
 |---|---|---|
-| Error handling UX (toast notifications) | ⬜ Pending | |
-| Loading states audit | ⬜ Pending | |
-| Mobile responsive check | ⬜ Pending | |
+| Error handling UX (toast notifications) | ✅ Done | ToastProvider + useToast hook. All 7 pages converted — inline banners removed, success/error/warning toasts with auto-dismiss. |
+| Loading states audit | ✅ Done | Dashboard now uses skeleton cards (4 summary tiles + 2 sections) instead of single spinner. Other pages already adequate. |
+| Mobile responsive check | ✅ Done | Sidebar: hamburger toggle + overlay on mobile. Impact/Discovery: history sidebar stacks below on mobile. Traceability: 2-col on mobile, 4-col on desktop. Delivery: reduced indentation. Requirements: flex-wrap filter bar. Header: padding for hamburger button. |
 | Demo walkthrough recording | ⬜ Pending | |
 | Portfolio write-up | ⬜ Pending | |
 

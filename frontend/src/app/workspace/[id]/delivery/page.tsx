@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner, SkeletonList } from "@/components/ui/loading";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 export default function DeliveryPage({
@@ -39,10 +40,10 @@ export default function DeliveryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { error: showError, success: showSuccess } = useToast();
   const [artifacts, setArtifacts] = useState<DeliveryArtifact[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
   const [expandedFeatures, setExpandedFeatures] = useState<Set<string>>(
     new Set()
@@ -59,24 +60,24 @@ export default function DeliveryPage({
         );
         setExpandedEpics(epicIds);
       })
-      .catch(() => {})
+      .catch((err) => {
+        showError("Failed to load delivery artifacts", err instanceof Error ? err.message : undefined);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleGenerate = async () => {
     try {
       setGenerating(true);
-      setError(null);
       const result = await generateDeliveryPlan(id);
       setArtifacts(result);
       const epicIds = new Set(
         result.filter((a) => a.type === "epic").map((a) => a.id)
       );
       setExpandedEpics(epicIds);
+      showSuccess("Delivery plan generated", `${result.length} artifacts created.`);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Generation failed"
-      );
+      showError("Generation failed", err instanceof Error ? err.message : undefined);
     } finally {
       setGenerating(false);
     }
@@ -92,8 +93,9 @@ export default function DeliveryPage({
         prev.map((a) => (a.id === updated.id ? updated : a))
       );
       setEditingId(null);
+      showSuccess("Artifact updated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      showError("Update failed", err instanceof Error ? err.message : undefined);
     }
   };
 
@@ -170,18 +172,6 @@ export default function DeliveryPage({
       />
 
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 underline cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
         {generating && (
           <Spinner message="Generating delivery plan from requirements..." />
         )}
@@ -309,7 +299,7 @@ export default function DeliveryPage({
 
                         {/* Stories */}
                         {expandedFeatures.has(feature.id) && (
-                          <div className="pl-16 pr-4 pb-3 space-y-2">
+                          <div className="pl-6 md:pl-16 pr-4 pb-3 space-y-2">
                             {getChildren(feature.id).map((story) => (
                               <StoryCard
                                 key={story.id}
