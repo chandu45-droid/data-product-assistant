@@ -72,15 +72,25 @@ Transforms business discussions → structured, traceable data product requireme
 | Frontend pages (all 7) | ✅ Done | All return HTTP 200 |
 | Delete workspace | ✅ Done | 204 No Content, clean cascade |
 
-## Milestone 5: Production Deployment ⬜
-**Status:** Not Started
+## Milestone 5: Production Deployment ✅
+**Status:** Complete — both services live on Vercel (2026-06-26)
 
 | Task | Status | Notes |
 |---|---|---|
-| Deploy backend to Render | ⬜ Pending | render.yaml ready |
-| Deploy frontend to Vercel | ⬜ Pending | Need to set NEXT_PUBLIC_API_URL |
-| Set ANTHROPIC_API_KEY on Render | ⬜ Pending | |
-| Smoke test production | ⬜ Pending | |
+| Deploy backend | ✅ Done | Vercel serverless: `https://backend-sigma-six-19.vercel.app` |
+| Deploy frontend | ✅ Done | Vercel: `https://frontend-one-chi-43.vercel.app` |
+| Connect frontend → backend | ✅ Done | `NEXT_PUBLIC_API_URL` env var set on Vercel |
+| Smoke test: health check | ✅ Done | `/api/health` returns healthy |
+| Smoke test: create workspace | ✅ Done | POST /api/workspaces → 200 |
+| Smoke test: discovery | ✅ Done | Returns 3 objectives, 4 KPIs, 5 risks |
+| Set ANTHROPIC_API_KEY | ⬜ Optional | Mock data works without it; add key for live AI |
+
+**Production URLs:**
+- Frontend: https://frontend-one-chi-43.vercel.app
+- Backend API: https://backend-sigma-six-19.vercel.app/api
+- Health check: https://backend-sigma-six-19.vercel.app/api/health
+
+**Note:** Backend uses `/tmp/data.db` (ephemeral SQLite on Vercel serverless). Data resets on cold starts. Fine for portfolio demo — AI generates mock data on every request.
 
 ## Milestone 6: Polish & Portfolio ⬜
 **Status:** Not Started
@@ -98,6 +108,9 @@ Transforms business discussions → structured, traceable data product requireme
 ## Git History
 1. `Initial MVP commit` — full app with all pages, components, backend, AI service
 2. `Add Render deployment configuration` — render.yaml + requirements.txt updates
+3. `Add progress tracker after E2E testing verification` — progress.md
+4. `Move render.yaml to repo root with rootDir for Render Blueprint` — deployment prep
+5. `Deploy full stack to Vercel (frontend + backend)` — api/index.py, vercel.json, live URLs
 
 ## Architecture Notes
 - **No API key?** AI service returns mock/structured data so app works without Claude API
