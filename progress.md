@@ -103,6 +103,20 @@ Transforms business discussions → structured, traceable data product requireme
 | Demo walkthrough script | ✅ Done | DEMO-SCRIPT.md — 3-4 min structured walkthrough covering all 7 features + mobile. Ready for screen recording with OBS/Loom. |
 | Portfolio write-up | ✅ Done | PORTFOLIO.md — project summary, architecture, BA skills demonstrated, what-I'd-add-next. Ready for Thoughtworks submission. |
 
+## Milestone 7: QA Bug Fixes ✅
+**Status:** Complete — 2 critical bugs fixed, deployed, verified (2026-06-27)
+
+| Bug | Root Cause | Fix | Status |
+|---|---|---|---|
+| Delivery page: features/stories never render | Backend returns tree-structured artifacts (epics with nested `children`), but frontend stores top-level array and uses `parent_id` filtering — finding nothing | Added `flattenDeliveryTree()` in `frontend/src/lib/api.ts` to recursively flatten tree into flat array preserving `parent_id` references | ✅ Fixed + deployed |
+| Traceability: empty requirement→artifact links | Mock delivery data always has `linked_requirement_ids: []` for all features/stories | Added auto-link logic in `backend/routers/delivery.py` that distributes requirement IDs round-robin across features and stories after generation | ✅ Fixed + deployed |
+
+**Verification:**
+- `npx next build` — ✅ passes clean
+- Backend import — ✅ passes clean
+- Production test: 5/5 features linked, 10/10 stories linked, 5/5 requirements have artifact links
+- Both frontend and backend redeployed to Vercel
+
 ---
 
 ## Git History
@@ -114,8 +128,11 @@ Transforms business discussions → structured, traceable data product requireme
 6. `Update progress.md with deployment results` — Milestone 5 complete
 7. `Add toast notifications, skeleton loading, and mobile responsive layout` — Milestone 6 tasks 1-3
 8. `Complete Milestone 6: demo script + portfolio write-up` — All milestones done
+9. `Fix delivery page rendering and traceability links` — QA bug fixes (Milestone 7)
 
 ## Architecture Notes
 - **No API key?** AI service returns mock/structured data so app works without Claude API
 - **Traceability transform:** `transformTraceability()` in api.ts converts backend's hierarchical response to frontend's flat 4-column TraceNode format
+- **Delivery tree flattening:** `flattenDeliveryTree()` in api.ts converts backend's tree response (epics with nested children) to flat array with parent_id references for delivery page
 - **Risk derivation:** `deriveRiskLevel()` in impact page derives HIGH/MEDIUM/LOW from risk_assessment text since backend doesn't send explicit risk_level
+- **Auto-linking:** `generate_delivery_plan` in delivery.py distributes requirement IDs round-robin across features and stories for traceability in mock mode
