@@ -56,6 +56,19 @@ async def generate_delivery_plan(workspace_id: str, db: Session = Depends(get_db
                 db.add(story)
                 created.append(story)
 
+    # Auto-link features & stories to requirements for traceability
+    req_ids = [r.id for r in requirements]
+    if req_ids:
+        features = [a for a in created if a.type == "feature"]
+        for i, feature in enumerate(features):
+            linked = [req_ids[i % len(req_ids)]]
+            if len(req_ids) > 1:
+                linked.append(req_ids[(i + 1) % len(req_ids)])
+            feature.set_json("linked_requirement_ids", linked)
+            # Propagate to child stories
+            for story in [a for a in created if a.parent_id == feature.id]:
+                story.set_json("linked_requirement_ids", linked)
+
     db.commit()
     for artifact in created:
         db.refresh(artifact)

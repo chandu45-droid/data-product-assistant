@@ -145,21 +145,38 @@ export async function updateDataRequirement(
 
 // ── Delivery Artifacts ─────────────────────────────────────────────
 
+/** Flatten a tree-structured delivery response into a flat array.
+ *  Backend returns epics with nested children; frontend needs a flat
+ *  array where parent_id references link items together. */
+function flattenDeliveryTree(tree: DeliveryArtifact[]): DeliveryArtifact[] {
+  const flat: DeliveryArtifact[] = [];
+  for (const item of tree) {
+    const { children, ...rest } = item;
+    flat.push(rest as DeliveryArtifact);
+    if (children && children.length > 0) {
+      flat.push(...flattenDeliveryTree(children));
+    }
+  }
+  return flat;
+}
+
 export async function generateDeliveryPlan(
   workspaceId: string
 ): Promise<DeliveryArtifact[]> {
-  return request<DeliveryArtifact[]>(
+  const tree = await request<DeliveryArtifact[]>(
     `/workspaces/${workspaceId}/delivery-plan/generate`,
     { method: "POST" }
   );
+  return flattenDeliveryTree(tree);
 }
 
 export async function listDeliveryArtifacts(
   workspaceId: string
 ): Promise<DeliveryArtifact[]> {
-  return request<DeliveryArtifact[]>(
+  const tree = await request<DeliveryArtifact[]>(
     `/workspaces/${workspaceId}/delivery-artifacts`
   );
+  return flattenDeliveryTree(tree);
 }
 
 export async function updateDeliveryArtifact(
