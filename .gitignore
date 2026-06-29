@@ -45,3 +45,12 @@ yarn-error.log*
 # Build
 *.tsbuildinfo
 next-env.d.ts
+
+# Internal / Claude workspace
+CLAUDE.md
+DEMO-SCRIPT.md
+PORTFOLIO.md
+progress.md
+.claude/
+**/CLAUDE.md
+**/AGENTS.md
